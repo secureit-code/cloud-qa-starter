@@ -7,3 +7,4 @@ Cloud testing intro
 - [ ] Set up API tests (Postman/Newman)
 - [ ] Set up UI tests (Playwright, Python)
 - [ ] Add quality gates in CI
+- [ ] Branch protection UI-test
