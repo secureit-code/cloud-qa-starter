@@ -20,6 +20,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+
+      - name: Install Playwright browsers
+        run: |
+          python -m playwright install --with-deps
+
       - name: Run tests and generate reports
         run: |
           pytest -q --junitxml=report.xml --html=report.html --self-contained-html
