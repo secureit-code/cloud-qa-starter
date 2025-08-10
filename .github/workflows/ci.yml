@@ -1,5 +1,7 @@
+# Namn på workflow
 name: CI
 
+# Workflow-triggers – körs vid push eller pull request mot main-branchen
 on:
   push:
     branches: [ "main" ]
@@ -8,27 +10,36 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Använd senaste Ubuntu som miljö
+
     steps:
+      # Steg 1: Checka ut källkoden från repository
       - name: Check out repo
         uses: actions/checkout@v4
+
+      # Steg 2: Installera Python 3.11
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      # Steg 3: Installera Python-dependencies från requirements.txt
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # Steg 4: Installera Playwright-webbläsare och tillhörande beroenden
       - name: Install Playwright browsers
         run: |
           python -m playwright install --with-deps
 
+      # Steg 5: Kör pytest med JUnit- och HTML-rapportgenerering
       - name: Run tests and generate reports
         run: |
           pytest -q --junitxml=report.xml --html=report.html --self-contained-html
 
+      # Steg 6: Ladda upp pytest-rapporter som artifacts i GitHub Actions
       - name: Upload test reports
         uses: actions/upload-artifact@v4
         with:
@@ -36,20 +47,20 @@ jobs:
           path: |
             report.html
             report.xml
-            
-          
 
-#Ladda upp JUnit-rapport som artifact
-          #Set up Node.js 
+      # Steg 7: Installera Node.js version 20
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-#Installera Newman
+
+      # Steg 8: Installera Newman (Postman CLI) och HTML-reporter globalt
       - name: Install Newman + HTML reporter
         run: |
           npm install -g newman newman-reporter-htmlextra
-#Köra collection + environment
+
+      # Steg 9: Kör Postman API-tester med Newman
+      # Genererar både JUnit- och HTML-rapporter
       - name: Run Postman API tests (Newman)
         run: |
           newman run tests/api/httpbin.postman_collection.json \
@@ -57,6 +68,8 @@ jobs:
             -r junit,htmlextra \
             --reporter-junit-export newman-report.xml \
             --reporter-htmlextra-export newman-report.html
+
+      # Steg 10: Ladda upp Newman-rapporter (både XML och HTML)
       - name: Upload Newman reports
         uses: actions/upload-artifact@v4
         with:
@@ -64,11 +77,10 @@ jobs:
           path: |
             newman-report.xml
             newman-report.html
-#Ladda upp JUnit-rapport som artifact
+
+      # Steg 11: Ladda upp endast Newman JUnit-rapport separat
       - name: Upload Newman report
         uses: actions/upload-artifact@v4
         with:
           name: newman-report
           path: newman-report.xml
-
-
