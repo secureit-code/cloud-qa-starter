@@ -1,7 +1,7 @@
 # Namn på workflow
 name: CI
 
-# Workflow-triggers – körs vid push eller pull request mot main-branchen
+# Triggers – körs vid push och pull request mot main
 on:
   push:
     branches: [ "main" ]
@@ -9,11 +9,13 @@ on:
     branches: [ "main" ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest  # Använd senaste Ubuntu som miljö
-
+  # =========================
+  # Jobb 1: Python / Playwright
+  # =========================
+  python-tests:
+    runs-on: ubuntu-latest  # Miljö: senaste Ubuntu
     steps:
-      # Steg 1: Checka ut källkoden från repository
+      # Steg 1: Checka ut repo
       - name: Check out repo
         uses: actions/checkout@v4
 
@@ -23,44 +25,58 @@ jobs:
         with:
           python-version: "3.11"
 
-      # Steg 3: Installera Python-dependencies från requirements.txt
+      # Steg 3: Installera Python-dependencies
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      # Steg 4: Installera Playwright-webbläsare och tillhörande beroenden
+      # Steg 4: Installera Playwright-browsers + OS-beroenden
       - name: Install Playwright browsers
         run: |
           python -m playwright install --with-deps
 
-      # Steg 5: Kör pytest med JUnit- och HTML-rapportgenerering
+      # Steg 5: Kör pytest och generera JUnit + HTML-rapporter
       - name: Run tests and generate reports
         run: |
           pytest -q --junitxml=report.xml --html=report.html --self-contained-html
 
-      # Steg 6: Ladda upp pytest-rapporter som artifacts i GitHub Actions
-      - name: Upload test reports
+      # Steg 6: Ladda upp pytest-rapporter som artifacts
+      - name: Upload pytest reports
         uses: actions/upload-artifact@v4
         with:
           name: pytest-reports
           path: |
-            report.html
             report.xml
+            report.html
 
-      # Steg 7: Installera Node.js version 20
+  # =========================
+  # Jobb 2: Postman / Newman API
+  # =========================
+  api-tests:
+    runs-on: ubuntu-latest  # Miljö: senaste Ubuntu
+    # Om du vill köra API-tester först efter att Python-testerna passerat,
+    # avkommentera raden nedan:
+    # needs: [python-tests]
+
+    steps:
+      # Steg 1: Checka ut repo (behövs i detta jobb också)
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      # Steg 2: Installera Node.js v20
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      # Steg 8: Installera Newman (Postman CLI) och HTML-reporter globalt
+      # Steg 3: Installera Newman + HTML-reporter globalt
       - name: Install Newman + HTML reporter
         run: |
           npm install -g newman newman-reporter-htmlextra
 
-      # Steg 9: Kör Postman API-tester med Newman
-      # Genererar både JUnit- och HTML-rapporter
+      # Steg 4: Kör Postman-collection med environment
+      # Genererar både JUnit (XML) och HTML-report
       - name: Run Postman API tests (Newman)
         run: |
           newman run tests/api/httpbin.postman_collection.json \
@@ -69,8 +85,8 @@ jobs:
             --reporter-junit-export newman-report.xml \
             --reporter-htmlextra-export newman-report.html
 
-      # Steg 10: Ladda upp Newman-rapporter (både XML och HTML)
-      - name: Upload Newman reports
+      # Steg 5: Ladda upp Newman-rapporter (XML + HTML) som artifacts
+      - name: Upload Newman reports (XML + HTML)
         uses: actions/upload-artifact@v4
         with:
           name: newman-reports
@@ -78,9 +94,9 @@ jobs:
             newman-report.xml
             newman-report.html
 
-      # Steg 11: Ladda upp endast Newman JUnit-rapport separat
-      - name: Upload Newman report
+      # (Valfritt) Steg 6: Ladda upp separat JUnit-XML om du vill konsumera den isolerat
+      - name: Upload Newman JUnit XML (separate)
         uses: actions/upload-artifact@v4
         with:
-          name: newman-report
+          name: newman-report-xml
           path: newman-report.xml
