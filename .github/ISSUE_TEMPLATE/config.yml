@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Fråga / support
+    url: https://github.com/secureit-code/cloud-qa-starter/discussions
+    about: Använd Discussions för frågor (om aktiverat)
