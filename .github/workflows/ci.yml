@@ -41,14 +41,24 @@ jobs:
         with:
           node-version: "20"
 #Installera Newman
-      - name: Install Newman
-        run: npm install -g newman
+      - name: Install Newman + HTML reporter
+        run: |
+          npm install -g newman newman-reporter-htmlextra
 #Köra collection + environment
       - name: Run Postman API tests (Newman)
         run: |
           newman run tests/api/httpbin.postman_collection.json \
             -e tests/api/httpbin.postman_environment.json \
-            -r junit --reporter-junit-export newman-report.xml
+            -r junit,htmlextra \
+            --reporter-junit-export newman-report.xml \
+            --reporter-htmlextra-export newman-report.html
+      - name: Upload Newman reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-reports
+          path: |
+            newman-report.xml
+            newman-report.html
 #Ladda upp JUnit-rapport som artifact
       - name: Upload Newman report
         uses: actions/upload-artifact@v4
