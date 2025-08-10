@@ -31,5 +31,29 @@ jobs:
           path: |
             report.html
             report.xml
+            
+          
+
+#Ladda upp JUnit-rapport som artifact
+          #Set up Node.js 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+#Installera Newman
+      - name: Install Newman
+        run: npm install -g newman
+#Köra collection + environment
+      - name: Run Postman API tests (Newman)
+        run: |
+          newman run tests/api/httpbin.postman_collection.json \
+            -e tests/api/httpbin.postman_environment.json \
+            -r junit --reporter-junit-export newman-report.xml
+#Ladda upp JUnit-rapport som artifact
+      - name: Upload Newman report
+        uses: actions/upload-artifact@v4
+        with:
+          name: newman-report
+          path: newman-report.xml
 
 
