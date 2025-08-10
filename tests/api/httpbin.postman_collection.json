@@ -1,0 +1,29 @@
+{
+  "info": { "name": "httpbin-demo", "_postman_id": "demo-1", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "item": [
+    {
+      "name": "GET 200 ok",
+      "request": { "method": "GET", "url": "{{baseUrl}}/status/200" },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test('status is 200', function () {",
+          "  pm.expect(pm.response.code).to.eql(200);",
+          "});"
+        ], "type": "text/javascript" }
+      }]
+    },
+    {
+      "name": "GET 404 not found",
+      "request": { "method": "GET", "url": "{{baseUrl}}/status/404" },
+      "event": [{
+        "listen": "test",
+        "script": { "exec": [
+          "pm.test('status is 404', function () {",
+          "  pm.expect(pm.response.code).to.eql(404);",
+          "});"
+        ], "type": "text/javascript" }
+      }]
+    }
+  ]
+}
